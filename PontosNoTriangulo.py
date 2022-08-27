@@ -40,6 +40,7 @@ Tamanho = Ponto()
 Meio = Ponto()
 
 PontoClicado = Ponto()
+pontosNoTriangulo = 0
 
 flagDesenhaEixos = True
 
@@ -102,6 +103,8 @@ def PosicionaTrianguloDoCampoDeVisao():
         temp = TrianguloBase.getVertice(i)
         temp.rotacionaZ(AnguloDoCampoDeVisao)
         CampoDeVisao.alteraVertice(i, PosicaoDoCampoDeVisao + temp*tam)
+    
+    contarPontosNoTriangulo()
 
 
 def AvancaCampoDeVisao(distancia):
@@ -134,7 +137,42 @@ def init():
     # Cria o triangulo que representa o campo de visao
     CriaTrianguloDoCampoDeVisao()
     PosicionaTrianguloDoCampoDeVisao()
+
+
+def produtoVetorial(aresta1: Ponto, aresta2: Ponto):
+    return (aresta1.x*aresta2.y) - (aresta2.x*aresta1.y)
+
+
+def lado(p1: Ponto, p2: Ponto, p3: Ponto, p4: Ponto):
+    aresta1 = p2-p1
+    aresta2 = p4-p3
+
+    prodVeto = produtoVetorial(aresta1, aresta2)
+    if prodVeto > 0: return 1
+    elif prodVeto < 0: return -1
+    return 0
+
+def pontoNoTriangulo(ponto: Ponto):
+    global CampoDeVisao, pontosNoTriangulo
+    a = CampoDeVisao.getVertice(0)
+    b = CampoDeVisao.getVertice(1)
+    c = CampoDeVisao.getVertice(2)
+
+    l1 = lado(a, ponto, a, b)
+    l2 = lado(b, ponto, b, c)
+    l3 = lado(c, ponto, c, a)
+    if (l1 == l2) and (l2 == l3): pontosNoTriangulo += 1
+    return True
+
+
+def contarPontosNoTriangulo():
+    global pontosNoTriangulo
+    pontosNoTriangulo = 0
+    for n in range(PontosDoCenario.getNVertices()):
+        PontosDoCenario.getVertice(n)
     
+    print(pontosNoTriangulo)
+
 # ***********************************************************************************
 #
 # ***********************************************************************************
