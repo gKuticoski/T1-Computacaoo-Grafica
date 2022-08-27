@@ -169,7 +169,7 @@ def contarPontosNoTriangulo():
     global pontosNoTriangulo
     pontosNoTriangulo = 0
     for n in range(PontosDoCenario.getNVertices()):
-        PontosDoCenario.getVertice(n)
+        pontoNoTriangulo(PontosDoCenario.getVertice(n))
     
     print(pontosNoTriangulo)
 
@@ -239,7 +239,7 @@ def display():
 #ESCAPE = '\033'
 ESCAPE = b'\x1b'
 def keyboard(*args):
-    global flagDesenhaEixos
+    global flagDesenhaEixos, TrianguloBase
 
     #print (args)
     # If escape is pressed, kill everything.
@@ -249,6 +249,18 @@ def keyboard(*args):
         os._exit(0)
     if args[0] == b'p':
         PontosDoCenario.imprimeVertices()
+    if args[0] == b'o':
+        p: Ponto = TrianguloBase.getVertice(1) * 1.05
+        TrianguloBase.alteraVertice(1, p)
+        p: Ponto = TrianguloBase.getVertice(2) * 1.05
+        TrianguloBase.alteraVertice(2, p)
+        PosicionaTrianguloDoCampoDeVisao()
+    if args[0] == b'i':
+        p: Ponto = TrianguloBase.getVertice(1) * 0.95
+        TrianguloBase.alteraVertice(1, p)
+        p: Ponto = TrianguloBase.getVertice(2) * 0.95
+        TrianguloBase.alteraVertice(2, p)
+        PosicionaTrianguloDoCampoDeVisao()
     if args[0] == b'1':
         P1, P2 = PontosDoCenario.getAresta(0)
         P1.imprime()
