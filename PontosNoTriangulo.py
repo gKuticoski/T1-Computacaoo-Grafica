@@ -18,6 +18,7 @@
 #   Veja o arquivo Patch.rtf, armazenado na mesma pasta deste fonte.
 # ***********************************************************************************
 
+from ctypes.wintypes import POINT
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -43,6 +44,7 @@ PontoClicado = Ponto()
 pontosNoTriangulo = 0
 
 flagDesenhaEixos = True
+flagDesenhaPontos = False
 
 # **********************************************************************
 # GeraPontos(int qtd)
@@ -104,7 +106,7 @@ def PosicionaTrianguloDoCampoDeVisao():
         temp.rotacionaZ(AnguloDoCampoDeVisao)
         CampoDeVisao.alteraVertice(i, PosicaoDoCampoDeVisao + temp*tam)
     
-    contarPontosNoTriangulo()
+    # contarPontosNoTriangulo()
 
 
 def AvancaCampoDeVisao(distancia):
@@ -123,7 +125,7 @@ def init():
     glClearColor(0, 0, 1, 1)
     global Min, Max, Meio, Tamanho
 
-    GeraPontos(1000, Ponto(0,0), Ponto(500,500))
+    GeraPontos(10000, Ponto(0,0), Ponto(500,500))
     Min, Max = PontosDoCenario.getLimits()
     #Min, Max = PontosDoCenario.LePontosDeArquivo("PoligonoDeTeste.txt")
 
@@ -162,6 +164,7 @@ def pontoNoTriangulo(ponto: Ponto):
     l2 = lado(b, ponto, b, c)
     l3 = lado(c, ponto, c, a)
     if (l1 == l2) and (l2 == l3): pontosNoTriangulo += 1
+    else: return False
     return True
 
 
@@ -169,9 +172,37 @@ def contarPontosNoTriangulo():
     global pontosNoTriangulo
     pontosNoTriangulo = 0
     for n in range(PontosDoCenario.getNVertices()):
-        pontoNoTriangulo(PontosDoCenario.getVertice(n))
-    
-    print(pontosNoTriangulo)
+        pt: Ponto = PontosDoCenario.getVertice(n)
+        if pontoNoTriangulo(pt):
+            glColor(1, 0, 0)
+            desenha(pt)
+
+
+def desenha(pt: Ponto):
+    glBegin(GL_POINTS);
+    glVertex3f(pt.x,pt.y,pt.z)
+    glEnd();
+           
+
+def desenhaPontos():
+    pass
+
+def desenhaEnvelope():
+    min, max = CampoDeVisao.getLimits()
+    envelope = Polygon()
+    envelope.insereVertice(min.x, min.y, 0)
+    envelope.insereVertice(min.x, max.y, 0)
+    envelope.insereVertice(max.x, max.y, 0)
+    envelope.insereVertice(max.x, min.y, 0)
+    envelope.desenhaPoligono()
+    global pontosNoTriangulo
+    min, max = envelope.getLimits()
+    total = 0
+    for n in range(PontosDoCenario.getNVertices()):
+        pt: Ponto = PontosDoCenario.getVertice(n)
+        if ((pt.x > min.x and pt.x < max.x) and (pt.y > min.y and pt.y < max.y)):
+            glColor(0, 1, 0)
+            desenha(pt)
 
 # ***********************************************************************************
 #
@@ -224,13 +255,18 @@ def display():
         glColor3f(1,1,1); # R, G, B  [0..1]
         DesenhaEixos()
 
-    #glPointSize(5);
+    glPointSize(4);
     glColor3f(1,1,0) # R, G, B  [0..1]
     PontosDoCenario.desenhaVertices()
 
     glLineWidth(3)
     glColor3f(1,0,0) # R, G, B  [0..1]
     CampoDeVisao.desenhaPoligono()
+    glColor3f(1.0, 1.0, 1.0)
+    desenhaEnvelope()
+    contarPontosNoTriangulo()
+    #envelope.desenhaPoligono()
+    #pontosNoEnvelope()
 
     glutSwapBuffers()
 
