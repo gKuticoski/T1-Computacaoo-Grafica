@@ -173,9 +173,11 @@ def pontoNoTriangulo(ponto: Ponto):
 def contarPontosNoTriangulo():
     for n in range(PontosDoCenario.getNVertices()):
         pt: Ponto = PontosDoCenario.getVertice(n)
+        glColor(1, 0, 0)
         if pontoNoTriangulo(pt):
-            glColor(1, 0, 0)
-            desenha(pt)
+            glColor(0, 1, 0)
+        
+        desenha(pt)
 
 
 def desenha(pt: Ponto):
@@ -197,14 +199,15 @@ def desenhaEnvelope():
     min, max = envelope.getLimits()
     for n in range(PontosDoCenario.getNVertices()):
         pt: Ponto = PontosDoCenario.getVertice(n)
+        glColor(1, 0, 0)
         if ((pt.x > min.x and pt.x < max.x) and (pt.y > min.y and pt.y < max.y)):
             TotalPontosNoEnvelope += 1
             if pontoNoTriangulo(pt):
-                glColor(1, 0, 0)
+                glColor(0, 1, 0)
             else:
-                glColor(0.2, 1, 0.5 )
+                glColor(1, 1, 0 )
 
-            desenha(pt)
+        desenha(pt)
 
 # ***********************************************************************************
 #
@@ -257,7 +260,7 @@ def display():
         glColor3f(1,1,1); # R, G, B  [0..1]
         DesenhaEixos()
 
-    glPointSize(4);
+    glPointSize(3);
     glColor3f(1,1,0) # R, G, B  [0..1]
     PontosDoCenario.desenhaVertices()
 
