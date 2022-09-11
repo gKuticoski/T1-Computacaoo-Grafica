@@ -41,7 +41,8 @@ Tamanho = Ponto()
 Meio = Ponto()
 
 PontoClicado = Ponto()
-pontosNoTriangulo = 0
+TotalPontosNoTriangulo = 0
+TotalPontosNoEnvelope = 0
 
 flagDesenhaEixos = True
 flagDesenhaPontos = False
@@ -105,8 +106,6 @@ def PosicionaTrianguloDoCampoDeVisao():
         temp = TrianguloBase.getVertice(i)
         temp.rotacionaZ(AnguloDoCampoDeVisao)
         CampoDeVisao.alteraVertice(i, PosicaoDoCampoDeVisao + temp*tam)
-    
-    # contarPontosNoTriangulo()
 
 
 def AvancaCampoDeVisao(distancia):
@@ -145,9 +144,9 @@ def produtoVetorial(aresta1: Ponto, aresta2: Ponto):
     return (aresta1.x*aresta2.y) - (aresta2.x*aresta1.y)
 
 
-def lado(p1: Ponto, p2: Ponto, p3: Ponto, p4: Ponto):
-    aresta1 = p2-p1
-    aresta2 = p4-p3
+def lado(pt: Ponto, a: Ponto, b: Ponto):
+    aresta1 = pt-a
+    aresta2 = b-a
 
     prodVeto = produtoVetorial(aresta1, aresta2)
     if prodVeto > 0: return 1
@@ -155,22 +154,21 @@ def lado(p1: Ponto, p2: Ponto, p3: Ponto, p4: Ponto):
     return 0
 
 def pontoNoTriangulo(ponto: Ponto):
-    global CampoDeVisao, pontosNoTriangulo
+    global CampoDeVisao, TotalPontosNoTriangulo
     a = CampoDeVisao.getVertice(0)
     b = CampoDeVisao.getVertice(1)
     c = CampoDeVisao.getVertice(2)
 
-    l1 = lado(a, ponto, a, b)
-    l2 = lado(b, ponto, b, c)
-    l3 = lado(c, ponto, c, a)
-    if (l1 == l2) and (l2 == l3): pontosNoTriangulo += 1
-    else: return False
-    return True
+    l1 = lado(ponto, a, b)
+    l2 = lado(ponto, b, c)
+    l3 = lado(ponto, c, a)
+    if (l1 == l2) and (l2 == l3): 
+        TotalPontosNoTriangulo += 1
+        return True
 
+    return False
 
 def contarPontosNoTriangulo():
-    global pontosNoTriangulo
-    pontosNoTriangulo = 0
     for n in range(PontosDoCenario.getNVertices()):
         pt: Ponto = PontosDoCenario.getVertice(n)
         if pontoNoTriangulo(pt):
@@ -182,12 +180,11 @@ def desenha(pt: Ponto):
     glBegin(GL_POINTS);
     glVertex3f(pt.x,pt.y,pt.z)
     glEnd();
-           
-
-def desenhaPontos():
-    pass
 
 def desenhaEnvelope():
+    global TotalPontosNoEnvelope, TotalPontosNoTriangulo
+    TotalPontosNoTriangulo = 0
+    TotalPontosNoEnvelope = 0
     min, max = CampoDeVisao.getLimits()
     envelope = Polygon()
     envelope.insereVertice(min.x, min.y, 0)
@@ -195,13 +192,16 @@ def desenhaEnvelope():
     envelope.insereVertice(max.x, max.y, 0)
     envelope.insereVertice(max.x, min.y, 0)
     envelope.desenhaPoligono()
-    global pontosNoTriangulo
     min, max = envelope.getLimits()
-    total = 0
     for n in range(PontosDoCenario.getNVertices()):
         pt: Ponto = PontosDoCenario.getVertice(n)
         if ((pt.x > min.x and pt.x < max.x) and (pt.y > min.y and pt.y < max.y)):
-            glColor(0, 1, 0)
+            TotalPontosNoEnvelope += 1
+            if pontoNoTriangulo(pt):
+                glColor(1, 0, 0)
+            else:
+                glColor(0.2, 1, 0.5 )
+
             desenha(pt)
 
 # ***********************************************************************************
@@ -264,9 +264,7 @@ def display():
     CampoDeVisao.desenhaPoligono()
     glColor3f(1.0, 1.0, 1.0)
     desenhaEnvelope()
-    contarPontosNoTriangulo()
-    #envelope.desenhaPoligono()
-    #pontosNoEnvelope()
+    #contarPontosNoTriangulo()
 
     glutSwapBuffers()
 
