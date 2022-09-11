@@ -47,6 +47,8 @@ TotalPontosNoEnvelope = 0
 flagDesenhaEixos = True
 flagDesenhaPontos = False
 
+modo = 0
+
 # **********************************************************************
 # GeraPontos(int qtd)
 #      Metodo que gera pontos aleatorios no intervalo [Min..Max]
@@ -244,7 +246,7 @@ def reshape(w,h):
 
 # ***********************************************************************************
 def display():
-    global PontoClicado, flagDesenhaEixos
+    global PontoClicado, flagDesenhaEixos, modo
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -263,8 +265,12 @@ def display():
     glColor3f(1,0,0) # R, G, B  [0..1]
     CampoDeVisao.desenhaPoligono()
     glColor3f(1.0, 1.0, 1.0)
-    desenhaEnvelope()
-    #contarPontosNoTriangulo()
+
+    if modo == 1:
+        contarPontosNoTriangulo()
+    elif modo == 2:
+        desenhaEnvelope()
+        
 
     glutSwapBuffers()
 
@@ -273,7 +279,7 @@ def display():
 #ESCAPE = '\033'
 ESCAPE = b'\x1b'
 def keyboard(*args):
-    global flagDesenhaEixos, TrianguloBase
+    global flagDesenhaEixos, TrianguloBase, modo
 
     #print (args)
     # If escape is pressed, kill everything.
@@ -301,6 +307,8 @@ def keyboard(*args):
         P2.imprime()
     if args[0] == b' ':
         flagDesenhaEixos = not flagDesenhaEixos
+    if args[0] == b'a':
+        modo = modo + 1 if modo < 3 else 0
 
     # Forca o redesenho da tela
     glutPostRedisplay()
