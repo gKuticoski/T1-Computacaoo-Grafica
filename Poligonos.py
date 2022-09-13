@@ -24,7 +24,7 @@ class Polygon:
     #def insereVertice(self, P: Ponto):
     #    self.Vertices += [Ponto(P.x,P.y,P.z)]
 
-    def getVertice(self, i):
+    def getVertice(self, i) -> Ponto:
         temp = copy.deepcopy(self.Vertices[i])
         return temp
         #return self.Vertices[i]
@@ -73,7 +73,7 @@ class Polygon:
 #  Realiza a leitura de uam arquivo com as coordenadas do polígono
 # ***********************************************************************************
     def LePontosDeArquivo(self, Nome):
-        
+
         Pt = Ponto()
         infile = open(Nome)
         line = infile.readline()

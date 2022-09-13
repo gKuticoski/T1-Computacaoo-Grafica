@@ -8,7 +8,6 @@ class QuadTree():
         self.boundary = boundary
         self.capacity = capacity
         self.points = []
-        self.testes = 0
 
         self.southEast = None
         self.northWest = None
@@ -25,10 +24,10 @@ class QuadTree():
         
         if not self.is_divided():
             self.divide()
-            for p in self.points:
-                self.insert_in_children(p)
-            
+            a = copy.deepcopy(self.points)
             self.points = []
+            for p in a:
+                self.insert_in_children(p)
         
         self.insert_in_children(pt)
         return True
@@ -76,7 +75,6 @@ class QuadTree():
     
     def intersecao(self, rect: Envelope, pool: Polygon) -> bool:
         min_rect, max_rect = rect.getLimits()
-        self.testes += 1
         if not self.is_overlapping(min_rect, max_rect):
             return False
 
@@ -88,11 +86,31 @@ class QuadTree():
             self.southEast.intersecao(rect, pool)
             self.northEast.intersecao(rect, pool)
             self.southWest.intersecao(rect, pool)
-        
-            self.testes += self.northWest.testes +  self.southEast.testes + self.northEast.testes + self.southWest.testes
             return True
-        
-        self.testes += 1
 
         self.boundary.desenhaPoligono()
         return True
+
+    # def contaPontosQuad(poly: Polygon):
+    #     global TotalPontosNaQuad, TotalPontosNoTriangulo
+    #     TotalPontosNoTriangulo = 0
+
+    #     for n in range(poly.getNVertices()):
+    #         pt: Ponto = poly.getVertice(n)
+    #         glColor(1, 0, 0)
+    #         if Envelope_tri.is_inside(pt):
+    #             TotalPontosNoEnvelope += 1
+    #             if pontoNoTriangulo(pt):
+    #                 glColor(0, 1, 0)
+    #             else:
+    #                 glColor(1, 1, 0 )
+
+    #         desenha(pt)
+
+    def is_inside_quad(self, pt: Ponto) -> bool:
+        return (
+            pt.x >= self.boundary.min.x and 
+            pt.x < self.boundary.max.x and 
+            pt.y >= self.boundary.min.y and 
+            pt.y < self.boundary.max.y
+        )

@@ -52,13 +52,8 @@ flagDesenhaPontos = False
 
 modo = 0
 
-
-##Testes
-NroTestes = 0
-NroTestesEnvelope = 0
-NroTestesQuadTree = 0
-
-QuadTreeCenario = QuadTree(Envelope(Ponto(0, 0),  Ponto(500,500)), 4)
+# capac = 8
+QuadTreeCenario = QuadTree(Envelope(Ponto(0, 0),  Ponto(500,500)), 8)
 
 # **********************************************************************
 # GeraPontos(int qtd)
@@ -78,14 +73,6 @@ def GeraPontos(qtd, Min: Ponto, Max: Ponto):
         PontosDoCenario.insereVertice(P.x, P.y, P.z)
         QuadTreeCenario.insert_point(P)
         #PontosDoCenario.insereVertice(P)
-
-def gerar_nova_quad_tree(tam: int):
-    global QuadTreeCenario
-    QuadTreeCenario = QuadTree(Envelope(Ponto(0, 0),  Ponto(500,500)), tam)
-    for n in range(PontosDoCenario.getNVertices()):
-        pt: Ponto = PontosDoCenario.getVertice(n)
-        QuadTreeCenario.insert_point(pt)
-
 
 # **********************************************************************
 #  CriaTrianguloDoCampoDeVisao()
@@ -136,25 +123,6 @@ def PosicionaTrianguloDoCampoDeVisao():
         CampoDeVisao.alteraVertice(i, PosicaoDoCampoDeVisao + temp*tam)
 
 
-def PosicionaCampoDeVisao(n: int):
-    global AnguloDoCampoDeVisao, PosicaoDoCampoDeVisao, Meio
-
-    if n == 1:
-        AnguloDoCampoDeVisao = 0
-        PosicaoDoCampoDeVisao = Meio
-    elif n == 2:
-        AnguloDoCampoDeVisao = 90
-        PosicaoDoCampoDeVisao = Meio
-    elif n == 3:
-        AnguloDoCampoDeVisao = 90
-        PosicaoDoCampoDeVisao = Meio*0.5
-    elif n == 4:
-        AnguloDoCampoDeVisao = 0
-        PosicaoDoCampoDeVisao = Meio + Meio*0.5
-
-    PosicionaTrianguloDoCampoDeVisao()
-
-
 def AvancaCampoDeVisao(distancia):
     global PosicaoDoCampoDeVisao, AnguloDoCampoDeVisao
     vetor = Ponto(1,0,0)
@@ -171,9 +139,7 @@ def init():
     glClearColor(0, 0, 1, 1)
     global Min, Max, Meio, Tamanho
 
-    #GeraPontos(10000, Ponto(0,0), Ponto(500,500))
-    PontosDoCenario.LePontosDeArquivo('CenarioDeTeste.txt')
-    gerar_nova_quad_tree(6)
+    GeraPontos(500, Ponto(0,0), Ponto(500,500))
     Min, Max = PontosDoCenario.getLimits()  
     #Min, Max = PontosDoCenario.LePontosDeArquivo("PoligonoDeTeste.txt")
 
@@ -203,9 +169,8 @@ def lado(pt: Ponto, a: Ponto, b: Ponto):
     return 0
 
 def pontoNoTriangulo(ponto: Ponto):
-    global CampoDeVisao, TotalPontosNoTriangulo, NroTestes
+    global CampoDeVisao, TotalPontosNoTriangulo
 
-    NroTestes += 1
     a = CampoDeVisao.getVertice(0)
     b = CampoDeVisao.getVertice(1)
     c = CampoDeVisao.getVertice(2)
@@ -213,13 +178,17 @@ def pontoNoTriangulo(ponto: Ponto):
     l1 = lado(ponto, a, b)
     l2 = lado(ponto, b, c)
     l3 = lado(ponto, c, a)
+    
     if (l1 == l2) and (l2 == l3): 
         TotalPontosNoTriangulo += 1
         return True
 
     return False
+    
 
 def contarPontosNoTriangulo():
+    global TotalPontosNoTriangulo 
+    TotalPontosNoTriangulo = 0
     for n in range(PontosDoCenario.getNVertices()):
         pt: Ponto = PontosDoCenario.getVertice(n)
         glColor(1, 0, 0)
@@ -228,6 +197,8 @@ def contarPontosNoTriangulo():
         
         desenha(pt)
 
+    #print("Pontos no triangulo: ", TotalPontosNoTriangulo)
+
 
 def desenha(pt: Ponto):
     glBegin(GL_POINTS);
@@ -235,25 +206,43 @@ def desenha(pt: Ponto):
     glEnd();
 
 def desenhaEnvelope(poly: Polygon):
-    global TotalPontosNoEnvelope, TotalPontosNoTriangulo, NroTestesEnvelope, NroTestes
+    global TotalPontosNoEnvelope, TotalPontosNoTriangulo
 
     TotalPontosNoTriangulo = 0
     TotalPontosNoEnvelope = 0
     Envelope_tri = getEnvelope()
-    glColor(1, 1, 0)
     Envelope_tri.desenhaPoligono()
 
-    NroTestes = 0
     for n in range(poly.getNVertices()):
         pt: Ponto = poly.getVertice(n)
         glColor(1, 0, 0)
-        NroTestesEnvelope += 1
         if Envelope_tri.is_inside(pt):
             TotalPontosNoEnvelope += 1
             if pontoNoTriangulo(pt):
                 glColor(0, 1, 0)
             else:
                 glColor(1, 1, 0 )
+
+        desenha(pt)
+
+def filtraPontosPelaQuad(poly: Polygon):
+    global TotalPontosNaQuad, TotalPontosNoTriangulo, QuadTreeCenario
+
+    TotalPontosNoTriangulo = 0
+    TotalPontosNaQuad = 0
+
+    for n in range(poly.getNVertices()):
+        pt: Ponto = poly.getVertice(n)
+        glColor3f(1,0,0) # R, G, B  [0..1]
+        # PontosDoCenario.desenhaVertices()
+        if QuadTreeCenario.is_inside_quad(pt):
+            TotalPontosNaQuad += 1
+            if pontoNoTriangulo(pt):
+                glColor(0, 1, 0)
+            else:
+                glColor(1, 1, 0 )
+        # else:
+        #     glColor(1, 0, 0 )
 
         desenha(pt)
 
@@ -297,7 +286,7 @@ def reshape(w,h):
 
 # ***********************************************************************************
 def display():
-    global PontoClicado, flagDesenhaEixos, modo, QuadTreeCenario, TotalPontosNoEnvelope, TotalPontosNoTriangulo
+    global PontoClicado, flagDesenhaEixos, modo, QuadTreeCenario
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -318,25 +307,22 @@ def display():
     glColor3f(1.0, 1.0, 1.0)
 
     if modo == 1:
+        global TotalPontosNoTriangulo 
         TotalPontosNoTriangulo = 0
         contarPontosNoTriangulo()
-        #print("Total Pontos Trinagulo:", TotalPontosNoTriangulo)
+        print("Pontos no triangulo: ", TotalPontosNoTriangulo)
     elif modo == 2:
-        TotalPontosNoEnvelope = 0
+        TotalPontosNoTriangulo = 0
         desenhaEnvelope(PontosDoCenario)
-        print(f'Modo: Envelope - Nro de Testes ForcaBrua: {NroTestes} - Testes Envelope X Ponto: {NroTestesEnvelope}')
+        print("Pontos com o algoritmo do envelope: ", TotalPontosNoTriangulo)
     elif modo == 3:
-        glLineWidth(1)
+        TotalPontosNoTriangulo = 0
         QuadTreeCenario.desenha_quad_tree()
-        glLineWidth(3)
     elif modo == 4:
-        pool = Polygon()
-        glLineWidth(1)
-        QuadTreeCenario.intersecao(getEnvelope(), pool)
-        print("\n\n\aaaa",QuadTreeCenario.testes)
-        glLineWidth(3)
-        desenhaEnvelope(pool)
-        print("Total Pontos QuadTree:", pool.getNVertices()//2)
+        TotalPontosNoTriangulo = 0
+        QuadTreeCenario.intersecao(getEnvelope(), PontosDoCenario)
+        filtraPontosPelaQuad(PontosDoCenario)
+        print("Pontos com o algoritmo da quadtree: ", TotalPontosNoTriangulo)
         
 
     glutSwapBuffers()
@@ -346,7 +332,7 @@ def display():
 #ESCAPE = '\033'
 ESCAPE = b'\x1b'
 def keyboard(*args):
-    global flagDesenhaEixos, TrianguloBase, modo, AnguloDoCampoDeVisao, PosicaoDoCampoDeVisao
+    global flagDesenhaEixos, TrianguloBase, modo
 
     #print (args)
     # If escape is pressed, kill everything.
@@ -368,25 +354,34 @@ def keyboard(*args):
         p: Ponto = TrianguloBase.getVertice(2) * 0.95
         TrianguloBase.alteraVertice(2, p)
         PosicionaTrianguloDoCampoDeVisao()
-    if args[0] == b'c':
+    if args[0] == b'g':
         P1, P2 = PontosDoCenario.getAresta(0)
         P1.imprime()
         P2.imprime()
     if args[0] == b' ':
         flagDesenhaEixos = not flagDesenhaEixos
     if args[0] == b'a':
-        modo = modo + 1 if modo < 4 else 0
-    if args[0] == b't':
-        tam = int(input("Digite novo tamanho: "))
-        gerar_nova_quad_tree(tam)
+        # modo = modo + 1 
+        if modo < 4:
+            modo = modo + 1
+        else:
+            modo = 1
     if args[0] == b'1':
-        PosicionaCampoDeVisao(1)
-    if args[0] == b'2':
-        PosicionaCampoDeVisao(2)
-    if args[0] == b'3':
-        PosicionaCampoDeVisao(3)
-    if args[0] == b'4':
-        PosicionaCampoDeVisao(4)
+        #QuadTreeCenario = QuadTree(Envelope(Ponto(0, 0),  Ponto(500,500)), 1)
+        #QuadTreeCenario.desenha_quad_tree()
+        print("mudou para 1")
+            # elif args[0] == b'2':
+            #     # capac = 2
+            #     QuadTreeCenario.desenha_quad_tree()
+            # elif args[0] == b'3':
+            #     # capac = 3
+            #     QuadTreeCenario.desenha_quad_tree()
+            # elif args[0] == b'4':
+            #     # capac = 4
+            #     QuadTreeCenario.desenha_quad_tree()
+        
+            # global TotalPontosNoTriangulo 
+            # TotalPontosNoTriangulo = 0
 
     # Forca o redesenho da tela
     glutPostRedisplay()
