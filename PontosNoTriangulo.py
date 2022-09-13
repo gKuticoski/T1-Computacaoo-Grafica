@@ -45,6 +45,7 @@ Meio = Ponto()
 PontoClicado = Ponto()
 TotalPontosNoTriangulo = 0
 TotalPontosNoEnvelope = 0
+TotalPontosQuadTree = 0
 
 flagDesenhaEixos = True
 flagDesenhaPontos = False
@@ -137,7 +138,7 @@ def init():
     glClearColor(0, 0, 1, 1)
     global Min, Max, Meio, Tamanho
 
-    GeraPontos(100, Ponto(0,0), Ponto(500,500))
+    GeraPontos(10000, Ponto(0,0), Ponto(500,500))
     Min, Max = PontosDoCenario.getLimits()  
     #Min, Max = PontosDoCenario.LePontosDeArquivo("PoligonoDeTeste.txt")
 
@@ -196,7 +197,7 @@ def desenha(pt: Ponto):
     glVertex3f(pt.x,pt.y,pt.z)
     glEnd();
 
-def desenhaEnvelope(poly: Polygon) -> Envelope:
+def desenhaEnvelope(poly: Polygon):
     global TotalPontosNoEnvelope, TotalPontosNoTriangulo
 
     TotalPontosNoTriangulo = 0
@@ -260,7 +261,7 @@ def display():
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
-    glColor3f(1.0, 1.0, 0.0)
+    glColor3f(1.0, 0.0, 0.0)
 
     if (flagDesenhaEixos):
         glLineWidth(1)
@@ -268,7 +269,7 @@ def display():
         DesenhaEixos()
 
     glPointSize(3);
-    glColor3f(1,1,0) # R, G, B  [0..1]
+    glColor3f(1,0,0) # R, G, B  [0..1]
     PontosDoCenario.desenhaVertices()
 
     glLineWidth(3)

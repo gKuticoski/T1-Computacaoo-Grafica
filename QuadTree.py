@@ -82,6 +82,9 @@ class QuadTree():
         min_rect, max_rect = rect.getLimits()
         if not self.is_overlapping(min_rect, max_rect):
             return False
+
+        for V in self.points:
+            pool.insereVertice(V.x, V.y, V.z)
         
         if self.is_divided():
             self.northWest.intersecao(rect, pool)
@@ -89,9 +92,6 @@ class QuadTree():
             self.northEast.intersecao(rect, pool)
             self.southWest.intersecao(rect, pool)
             return True
-        
-        for V in self.points:
-            pool.insereVertice(V.x, V.y, V.z)
 
         self.boundary.desenhaPoligono()
         return True
