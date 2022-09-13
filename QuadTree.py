@@ -29,6 +29,10 @@ class QuadTree():
         
         if not self.is_divided():
             self.divide()
+            for p in self.points:
+                self.insert_in_children(p)
+            
+            self.points = [] 
         
         self.insert_in_children(pt)
         return True

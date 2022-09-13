@@ -51,11 +51,7 @@ flagDesenhaPontos = False
 
 modo = 0
 
-Escala = Ponto()
-Escala = Ponto(500,500) * (1.0/1000.0)
-x = 500 - Escala.x
-y = 500 - Escala.y
-QuadTreeCenario = QuadTree(Envelope(Ponto(Escala.x, Escala.y),  Ponto(x,y)), 4)
+QuadTreeCenario = QuadTree(Envelope(Ponto(0, 0),  Ponto(500,500)), 4)
 
 # **********************************************************************
 # GeraPontos(int qtd)
@@ -65,7 +61,6 @@ def GeraPontos(qtd, Min: Ponto, Max: Ponto):
     global PontosDoCenario
     Escala = Ponto()
     Escala = (Max - Min) * (1.0/1000.0)
-    #QuadTreeCenario = QuadTree(Envelope(Escala + Min, Escala + Max), 4)
     
     for i in range(qtd):
         x = random.randint(0, 1000)
@@ -99,6 +94,12 @@ def CriaTrianguloDoCampoDeVisao():
     vetor.rotacionaZ(-90)
     TrianguloBase.insereVertice (vetor.x,vetor.y, vetor.z)
     CampoDeVisao.insereVertice (vetor.x,vetor.y, vetor.z)
+
+def getEnvelope():
+    global CampoDeVisao
+
+    min, max = CampoDeVisao.getLimits()
+    return Envelope(min, max)
 
 
 # ***********************************************************************************
@@ -136,7 +137,7 @@ def init():
     glClearColor(0, 0, 1, 1)
     global Min, Max, Meio, Tamanho
 
-    GeraPontos(10000, Ponto(0,0), Ponto(500,500))
+    GeraPontos(100, Ponto(0,0), Ponto(500,500))
     Min, Max = PontosDoCenario.getLimits()  
     #Min, Max = PontosDoCenario.LePontosDeArquivo("PoligonoDeTeste.txt")
 
@@ -197,15 +198,16 @@ def desenha(pt: Ponto):
 
 def desenhaEnvelope(poly: Polygon) -> Envelope:
     global TotalPontosNoEnvelope, TotalPontosNoTriangulo
+
     TotalPontosNoTriangulo = 0
     TotalPontosNoEnvelope = 0
-    min, max = CampoDeVisao.getLimits()
-    envelope = Envelope(min, max)
-    envelope.desenhaPoligono()
+    Envelope_tri = getEnvelope()
+    Envelope_tri.desenhaPoligono()
+
     for n in range(poly.getNVertices()):
         pt: Ponto = poly.getVertice(n)
         glColor(1, 0, 0)
-        if ((pt.x > min.x and pt.x < max.x) and (pt.y > min.y and pt.y < max.y)):
+        if Envelope_tri.is_inside(pt):
             TotalPontosNoEnvelope += 1
             if pontoNoTriangulo(pt):
                 glColor(0, 1, 0)
@@ -213,8 +215,6 @@ def desenhaEnvelope(poly: Polygon) -> Envelope:
                 glColor(1, 1, 0 )
 
         desenha(pt)
-    
-    return envelope
 
 # ***********************************************************************************
 #
@@ -283,9 +283,8 @@ def display():
     elif modo == 3:
         QuadTreeCenario.desenha_quad_tree()
     elif modo == 4:
-        envelope = desenhaEnvelope(PontosDoCenario)
         pool = Polygon()
-        QuadTreeCenario.intersecao(envelope, pool)
+        QuadTreeCenario.intersecao(getEnvelope(), pool)
         desenhaEnvelope(pool)
         
 
