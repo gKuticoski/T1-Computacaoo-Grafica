@@ -22,7 +22,8 @@ from ctypes.wintypes import POINT
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-from Poligonos import *
+from Poligonos import * 
+from QuadTree import *
 from Envelope import *
 import random
 
@@ -50,6 +51,12 @@ flagDesenhaPontos = False
 
 modo = 0
 
+Escala = Ponto()
+Escala = Ponto(500,500) * (1.0/1000.0)
+x = 500 - Escala.x
+y = 500 - Escala.y
+QuadTreeCenario = QuadTree(Envelope(Ponto(Escala.x, Escala.y),  Ponto(x,y)), 4)
+
 # **********************************************************************
 # GeraPontos(int qtd)
 #      Metodo que gera pontos aleatorios no intervalo [Min..Max]
@@ -58,6 +65,7 @@ def GeraPontos(qtd, Min: Ponto, Max: Ponto):
     global PontosDoCenario
     Escala = Ponto()
     Escala = (Max - Min) * (1.0/1000.0)
+    #QuadTreeCenario = QuadTree(Envelope(Escala + Min, Escala + Max), 4)
     
     for i in range(qtd):
         x = random.randint(0, 1000)
@@ -66,6 +74,7 @@ def GeraPontos(qtd, Min: Ponto, Max: Ponto):
         y = y * Escala.y + Min.y
         P = Ponto(x,y)
         PontosDoCenario.insereVertice(P.x, P.y, P.z)
+        QuadTreeCenario.insert_point(P)
         #PontosDoCenario.insereVertice(P)
 
 # **********************************************************************
@@ -127,8 +136,8 @@ def init():
     glClearColor(0, 0, 1, 1)
     global Min, Max, Meio, Tamanho
 
-    GeraPontos(10000, Ponto(0,0), Ponto(500,500))
-    Min, Max = PontosDoCenario.getLimits()
+    GeraPontos(200, Ponto(0,0), Ponto(500,500))
+    Min, Max = PontosDoCenario.getLimits()  
     #Min, Max = PontosDoCenario.LePontosDeArquivo("PoligonoDeTeste.txt")
 
     Meio = (Max+Min) * 0.5 # Ponto central da janela
@@ -186,7 +195,7 @@ def desenha(pt: Ponto):
     glVertex3f(pt.x,pt.y,pt.z)
     glEnd();
 
-def desenhaEnvelope():
+def desenhaEnvelope() -> Envelope:
     global TotalPontosNoEnvelope, TotalPontosNoTriangulo
     TotalPontosNoTriangulo = 0
     TotalPontosNoEnvelope = 0
@@ -204,6 +213,8 @@ def desenhaEnvelope():
                 glColor(1, 1, 0 )
 
         desenha(pt)
+    
+    return envelope
 
 # ***********************************************************************************
 #
@@ -245,7 +256,7 @@ def reshape(w,h):
 
 # ***********************************************************************************
 def display():
-    global PontoClicado, flagDesenhaEixos, modo
+    global PontoClicado, flagDesenhaEixos, modo, QuadTreeCenario
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -269,6 +280,11 @@ def display():
         contarPontosNoTriangulo()
     elif modo == 2:
         desenhaEnvelope()
+    elif modo == 3:
+        QuadTreeCenario.desenha_quad_tree()
+    elif modo == 4:
+        envelope = desenhaEnvelope()
+        QuadTreeCenario.intersecao(envelope)
         
 
     glutSwapBuffers()
@@ -307,7 +323,7 @@ def keyboard(*args):
     if args[0] == b' ':
         flagDesenhaEixos = not flagDesenhaEixos
     if args[0] == b'a':
-        modo = modo + 1 if modo < 3 else 0
+        modo = modo + 1 if modo < 4 else 0
 
     # Forca o redesenho da tela
     glutPostRedisplay()
