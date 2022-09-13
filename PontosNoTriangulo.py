@@ -23,6 +23,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from Poligonos import *
+from Envelope import *
 import random
 
 # ***********************************************************************************
@@ -190,13 +191,8 @@ def desenhaEnvelope():
     TotalPontosNoTriangulo = 0
     TotalPontosNoEnvelope = 0
     min, max = CampoDeVisao.getLimits()
-    envelope = Polygon()
-    envelope.insereVertice(min.x, min.y, 0)
-    envelope.insereVertice(min.x, max.y, 0)
-    envelope.insereVertice(max.x, max.y, 0)
-    envelope.insereVertice(max.x, min.y, 0)
+    envelope = Envelope(min, max)
     envelope.desenhaPoligono()
-    min, max = envelope.getLimits()
     for n in range(PontosDoCenario.getNVertices()):
         pt: Ponto = PontosDoCenario.getVertice(n)
         glColor(1, 0, 0)
