@@ -136,7 +136,7 @@ def init():
     glClearColor(0, 0, 1, 1)
     global Min, Max, Meio, Tamanho
 
-    GeraPontos(200, Ponto(0,0), Ponto(500,500))
+    GeraPontos(10000, Ponto(0,0), Ponto(500,500))
     Min, Max = PontosDoCenario.getLimits()  
     #Min, Max = PontosDoCenario.LePontosDeArquivo("PoligonoDeTeste.txt")
 
@@ -195,15 +195,15 @@ def desenha(pt: Ponto):
     glVertex3f(pt.x,pt.y,pt.z)
     glEnd();
 
-def desenhaEnvelope() -> Envelope:
+def desenhaEnvelope(poly: Polygon) -> Envelope:
     global TotalPontosNoEnvelope, TotalPontosNoTriangulo
     TotalPontosNoTriangulo = 0
     TotalPontosNoEnvelope = 0
     min, max = CampoDeVisao.getLimits()
     envelope = Envelope(min, max)
     envelope.desenhaPoligono()
-    for n in range(PontosDoCenario.getNVertices()):
-        pt: Ponto = PontosDoCenario.getVertice(n)
+    for n in range(poly.getNVertices()):
+        pt: Ponto = poly.getVertice(n)
         glColor(1, 0, 0)
         if ((pt.x > min.x and pt.x < max.x) and (pt.y > min.y and pt.y < max.y)):
             TotalPontosNoEnvelope += 1
@@ -279,12 +279,14 @@ def display():
     if modo == 1:
         contarPontosNoTriangulo()
     elif modo == 2:
-        desenhaEnvelope()
+        desenhaEnvelope(PontosDoCenario)
     elif modo == 3:
         QuadTreeCenario.desenha_quad_tree()
     elif modo == 4:
-        envelope = desenhaEnvelope()
-        QuadTreeCenario.intersecao(envelope)
+        envelope = desenhaEnvelope(PontosDoCenario)
+        pool = Polygon()
+        QuadTreeCenario.intersecao(envelope, pool)
+        desenhaEnvelope(pool)
         
 
     glutSwapBuffers()

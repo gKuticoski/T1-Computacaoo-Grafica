@@ -74,24 +74,20 @@ class QuadTree():
 
         return True
     
-    def intersecao(self, rect: Envelope) -> bool:
+    def intersecao(self, rect: Envelope, pool: Polygon) -> bool:
         min_rect, max_rect = rect.getLimits()
         if not self.is_overlapping(min_rect, max_rect):
             return False
         
         if self.is_divided():
-            self.northWest.intersecao(rect)
-            self.southEast.intersecao(rect)
-            self.northEast.intersecao(rect)
-            self.southWest.intersecao(rect)
+            self.northWest.intersecao(rect, pool)
+            self.southEast.intersecao(rect, pool)
+            self.northEast.intersecao(rect, pool)
+            self.southWest.intersecao(rect, pool)
             return True
         
-        glColor3f(0.0, 1.0, 0.0)
-        glBegin(GL_POINTS);
         for V in self.points:
-            glVertex3f(V.x,V.y,V.z)
-        glEnd();
-        
-        glColor3f(1.0, 1.0, 1.0)
+            pool.insereVertice(V.x, V.y, V.z)
+
         self.boundary.desenhaPoligono()
         return True
